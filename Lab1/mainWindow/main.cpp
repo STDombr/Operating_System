@@ -12,7 +12,7 @@ LRESULT CALLBACK MyWindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp);
 bool isInteger(char*);
 void AddControls(HWND);
 
-HWND input, console1, console2, button;
+HWND input, console, button;
 int res = 0;
 
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR args, int ncmdshow) {
@@ -29,7 +29,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR args, int ncmdsho
     if (!RegisterClassW(&wc))
         return -1;
 
-    HWND hwnd = CreateWindowW(L"myWindowClass", L"WindowName", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 400, 150, 500, 500, nullptr, nullptr, nullptr, nullptr);
+    HWND hwnd = CreateWindowW(L"myWindowClass", L"Lab1", WS_OVERLAPPEDWINDOW | WS_VISIBLE, 400, 150, 500, 300, nullptr, nullptr, nullptr, nullptr);
 
     return createReceiver(hwnd);
 }
@@ -47,12 +47,14 @@ LRESULT CALLBACK MyWindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp){
                     GetWindowText(input, X, 100);
 
                     if (isInteger(X)){
+                        SetFocus(hwnd);
                         EnableWindow(button, false);
+                        EnableWindow(input, false);
+                        SetWindowText(console, "");
 
                         createProcess(stoi(X));
                     } else
                         MessageBox(hwnd, "Enter valid integer value!", "Error", MB_OK);
-                        //SetWindowText(check, "Invalid value!");
 
                     break;
             }
@@ -63,7 +65,8 @@ LRESULT CALLBACK MyWindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp){
             break;
         case WM_KEYDOWN:
             if(wp == VK_ESCAPE)
-                PostQuitMessage(0);
+                breakProcess(1, 1);
+                //PostQuitMessage(0);
             break;
         default:
             return DefWindowProcW(hwnd, msg, wp, lp);
@@ -78,9 +81,7 @@ void AddControls(HWND hWnd){
 
     button = CreateWindowW(L"Button", L"Compute the result", WS_VISIBLE | WS_CHILD | SS_CENTER, 175, 66, 150, 20, hWnd, (HMENU)COMPUTE_BUTTON, nullptr, nullptr);
 
-    console1 = CreateWindowW(L"static", L"", WS_VISIBLE | WS_CHILD, 100, 150, 300, 100, hWnd, nullptr, nullptr, nullptr);
-
-    console2 = CreateWindowW(L"static", L"", WS_VISIBLE | WS_CHILD, 100, 200, 300, 100, hWnd, nullptr, nullptr, nullptr);
+    console = CreateWindowW(L"static", L"", WS_VISIBLE | WS_CHILD, 75, 120, 350, 100, hWnd, nullptr, nullptr, nullptr);
 }
 
 //Convert from char[] to int

@@ -11,9 +11,10 @@ typedef struct tagMyStruct{
 } MYSTRUCT;
 
 PCOPYDATASTRUCT pMyCDS;
+PROCESS_INFORMATION piF = {nullptr}, piG = {nullptr};
 MYSTRUCT f, g;
-extern HWND console1, console2;
-std::string consoleMessages = "";
+extern HWND console, input, button;
+std::string consoleMessages;
 
 //create process to solv F(X) anf G(X)
 void createProcess(int);
@@ -22,10 +23,12 @@ void createProcess(int);
 void createFinalProcess(int, int);
 
 //convert std::string to LPSTR
-LPSTR stringToLPSTR(std::string s);
+LPSTR stringToLPSTR(std::string);
 
-//add new message and convert to LPSTR
-LPSTR GetMessages(PCOPYDATASTRUCT);
+//add new message and convert to std::string
+std::string GetMessages(PCOPYDATASTRUCT);
+
+bool breakProcess(bool f, bool g);
 
 LRESULT CALLBACK receiverProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp);
 
@@ -73,9 +76,17 @@ LRESULT CALLBACK receiverProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp){
                     {
                         f.func = 'f';
                         f.res = (int)((MYSTRUCT*)(pMyCDS->lpData))->res;
-                        SetWindowText(console1, GetMessages(pMyCDS));
+                        SetWindowText(console, GetMessages(pMyCDS).c_str());
 
-                        if (g.func == 'g')
+                        //if f returns 0, terminate process g
+                        if (f.res == 0)
+                        {
+                            breakProcess(0, 1);
+
+                            consoleMessages += "Binary operation calculated!\nF(x) * G(x) = 0";
+                            SetWindowText(console, consoleMessages.c_str());
+                        }
+                        else if (g.func == 'g')
                             createFinalProcess(f.res, g.res);
 
                     }
@@ -83,13 +94,22 @@ LRESULT CALLBACK receiverProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp){
                     {
                         g.func = 'g';
                         g.res = (int)((MYSTRUCT*)(pMyCDS->lpData))->res;
-                        SetWindowText(console1, GetMessages(pMyCDS));
+                        SetWindowText(console, GetMessages(pMyCDS).c_str());
 
-                        if (f.func == 'f')
+                        //if g returns 0, terminate process f
+                        if (g.res == 0)
+                        {
+                            breakProcess(1, 0);
+
+                            consoleMessages += "Binary operation calculated!\nF(x) * G(x) = 0";
+                            SetWindowText(console, consoleMessages.c_str());
+                        }
+                        else if (f.func == 'f')
                             createFinalProcess(f.res, g.res);
                     } else
                     {
-                        SetWindowText(console2, GetMessages(pMyCDS));
+                        SetWindowText(console, GetMessages(pMyCDS).c_str());
+                        breakProcess(1, 1);
                     }
                         break;
             }
@@ -101,15 +121,18 @@ LRESULT CALLBACK receiverProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp){
 
 
 void createProcess(int X){
+    consoleMessages = "";
+
+    f.func = 0;
     std::string stringF = "f ";
+    g.func = 0;
     std::string stringG = "g ";
 
     STARTUPINFO si = {0};
-    PROCESS_INFORMATION pi = {nullptr};
 
-    CreateProcess(R"(D:\KNU\Operating_System\Lab1\FunctionSolver\cmake-build-debug\FunctionSolver.exe)", stringToLPSTR(stringF + std::to_string(X)), nullptr, nullptr, false, 0, nullptr, nullptr, &si, &pi);
+    CreateProcess(R"(D:\KNU\Operating_System\Lab1\FunctionSolver\cmake-build-debug\FunctionSolver.exe)", stringToLPSTR(stringF + std::to_string(X)), nullptr, nullptr, false, 0, nullptr, nullptr, &si, &piF);
 
-    CreateProcess(R"(D:\KNU\Operating_System\Lab1\FunctionSolver\cmake-build-debug\FunctionSolver.exe)", stringToLPSTR(stringG + std::to_string(X)), nullptr, nullptr, false, 0, nullptr, nullptr, &si, &pi);
+    CreateProcess(R"(D:\KNU\Operating_System\Lab1\FunctionSolver\cmake-build-debug\FunctionSolver.exe)", stringToLPSTR(stringG + std::to_string(X)), nullptr, nullptr, false, 0, nullptr, nullptr, &si, &piG);
 }
 
 void createFinalProcess(int F, int G){
@@ -120,7 +143,7 @@ void createFinalProcess(int F, int G){
 
     CreateProcess(R"(D:\KNU\Operating_System\Lab1\FunctionSolver\cmake-build-debug\FunctionSolver.exe)", stringToLPSTR(stringB + std::to_string(F) + " " + std::to_string(G)), nullptr, nullptr, false, 0, nullptr, nullptr, &si, &pi);
 }
-LPSTR GetMessages(PCOPYDATASTRUCT){
+std::string GetMessages(PCOPYDATASTRUCT){
     int result = (char)((MYSTRUCT*)(pMyCDS->lpData))->res;
     if ((char)((MYSTRUCT*)(pMyCDS->lpData))->func == 'f')
     {
@@ -130,11 +153,11 @@ LPSTR GetMessages(PCOPYDATASTRUCT){
         consoleMessages += "G(x) calculate the result: G(x) = ";
     } else
     {
-        consoleMessages = "Binary operation calculated! F(x) * G(x) = ";
+        consoleMessages += "Binary operation calculated!\nF(x) * G(x) = ";
     }
     consoleMessages +=  std::to_string(result) + "\n";
 
-    return stringToLPSTR(consoleMessages);
+    return consoleMessages;
 }
 
 LPSTR stringToLPSTR(std::string s){
@@ -142,5 +165,32 @@ LPSTR stringToLPSTR(std::string s){
     return const_cast<LPSTR>(temp);
 }
 
+bool breakProcess(bool f, bool g){
+    if (f)
+        if (TerminateProcess(piF.hProcess, 0))
+        {
 
+            consoleMessages += "Process F stopped.";
+            if (g)
+                consoleMessages += " (Cancellation by special key)";
+            else
+                consoleMessages += " (G(x) = 0);";
+            consoleMessages += "\n";
+        }
+
+    if (g)
+        if (TerminateProcess(piG.hProcess, 0))
+        {
+            consoleMessages += "Process G stopped.";
+            if (f)
+                consoleMessages += " (Cancellation by special key)";
+            else
+                consoleMessages += " (F(x) = 0);";
+            consoleMessages += "\n";
+        }
+    SetWindowText(console, consoleMessages.c_str());
+
+    EnableWindow(button, true);
+    EnableWindow(input, true);
+}
 #endif //LAB_1_RECEIVER_H
