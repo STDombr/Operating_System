@@ -5,6 +5,11 @@
 #include <windows.h>
 #define MYMESSAGE 1
 
+/**
+ * structure for receiving messages
+ * func store info about function
+ * res store resultof the function
+ */
 typedef struct tagMyStruct{
     char func;
     int res;
@@ -12,29 +17,61 @@ typedef struct tagMyStruct{
 
 PCOPYDATASTRUCT pMyCDS;
 PROCESS_INFORMATION piF = {nullptr}, piG = {nullptr};
+
 MYSTRUCT f, g;
 extern HWND console, input, button;
+//handle to a main window
+HWND mainHwnd;
+extern HMENU hMenu;
 std::string consoleMessages;
 
-//create process to solv F(X) anf G(X)
+/**
+ * function for creating process to solv F(X) anf G(X)
+ */
 void createProcess(int);
 
-//create process to solv binary operation
+/**
+ * function for creating process to solv binary operation
+ */
 void createFinalProcess(int, int);
 
-//convert std::string to LPSTR
+/**
+ * function for convert std::string to LPSTR
+ * @return LPSTR
+ */
 LPSTR stringToLPSTR(std::string);
 
-//add new message and convert to std::string
+/**
+ * function for add new message and convert to std::string
+ * @return new message
+ */
 std::string GetMessages(PCOPYDATASTRUCT);
 
-bool breakProcess(bool f, bool g);
+/**
+ * function for determinate integer from char*
+ * @return bool
+ */
+bool isInteger(char*);
 
+/**
+ * function for break some process
+ * @param f true if needed to terminate
+ * @param g true if needed to terminate
+ */
+void breakProcess(bool f, bool g);
+
+/**
+ *  the Window Procedure
+ */
 LRESULT CALLBACK receiverProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp);
 
-//create a child hide window to receive a messages
+/**
+ * function for creating a child hide window to receive a messages
+ * @param hwndParent  handle to a main window
+ */
 int WINAPI createReceiver(HWND hwndParent){
 
+    mainHwnd = hwndParent;
     WNDCLASSW wc = {0};
     wc.lpfnWndProc = receiverProcedure;
     wc.lpszClassName = L"Disp32Class";
@@ -56,6 +93,9 @@ int WINAPI createReceiver(HWND hwndParent){
     return 0;
 }
 
+/**
+ *  the Window Procedure
+ */
 LRESULT CALLBACK receiverProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp){
     switch(msg){
         case WM_CREATE:
@@ -119,7 +159,9 @@ LRESULT CALLBACK receiverProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp){
     }
 }
 
-
+/**
+ * function for creating process to solv F(X) anf G(X)
+ */
 void createProcess(int X){
     consoleMessages = "";
 
@@ -135,6 +177,9 @@ void createProcess(int X){
     CreateProcess(R"(D:\KNU\Operating_System\Lab1\FunctionSolver\cmake-build-debug\FunctionSolver.exe)", stringToLPSTR(stringG + std::to_string(X)), nullptr, nullptr, false, 0, nullptr, nullptr, &si, &piG);
 }
 
+/**
+ * function for creating process to solv binary operation
+ */
 void createFinalProcess(int F, int G){
     std::string stringB = "b ";
 
@@ -143,8 +188,14 @@ void createFinalProcess(int F, int G){
 
     CreateProcess(R"(D:\KNU\Operating_System\Lab1\FunctionSolver\cmake-build-debug\FunctionSolver.exe)", stringToLPSTR(stringB + std::to_string(F) + " " + std::to_string(G)), nullptr, nullptr, false, 0, nullptr, nullptr, &si, &pi);
 }
+
+/**
+ * function for add new message and convert to std::string
+ * @return new message
+ */
 std::string GetMessages(PCOPYDATASTRUCT){
-    int result = (char)((MYSTRUCT*)(pMyCDS->lpData))->res;
+    int result = (int)((MYSTRUCT*)(pMyCDS->lpData))->res;
+
     if ((char)((MYSTRUCT*)(pMyCDS->lpData))->func == 'f')
     {
         consoleMessages += "F(x) calculate the result: F(x) = ";
@@ -160,12 +211,21 @@ std::string GetMessages(PCOPYDATASTRUCT){
     return consoleMessages;
 }
 
+/**
+ * function for convert std::string to LPSTR
+ * @return LPSTR
+ */
 LPSTR stringToLPSTR(std::string s){
     char* temp = const_cast<char*>(s.c_str());
     return const_cast<LPSTR>(temp);
 }
 
-bool breakProcess(bool f, bool g){
+/**
+ * function for break some process
+ * @param f true if needed to terminate
+ * @param g true if needed to terminate
+ */
+void breakProcess(bool f, bool g){
     if (f)
         if (TerminateProcess(piF.hProcess, 0))
         {
@@ -192,5 +252,40 @@ bool breakProcess(bool f, bool g){
 
     EnableWindow(button, true);
     EnableWindow(input, true);
+    SetMenu(mainHwnd, hMenu);
 }
+
+/**
+ * function for determinate integer from char*
+ * @return bool
+ */
+bool isInteger(char *s){
+    std::string temp(s);
+    int length = temp.size(), i = 0;
+
+    if (length <= 0)
+        return false;
+
+    //if number <0
+    if (length > 1 && temp[0] == '-'){
+        if (temp[1] >= '1' && temp[1] <= '9'){
+
+            for (i = 2; i<length; i++){
+                if (!(temp[i] >= '0' && temp[i] <= '9'))
+                    return false;
+            }
+            return true;
+        } else
+            return false;
+    }
+
+    //if number >=0
+    for (i; i<length; i++){
+        if (!(temp[i] >= '0' && temp[i] <= '9'))
+            return false;
+    }
+
+    return true;
+}
+
 #endif //LAB_1_RECEIVER_H

@@ -5,16 +5,31 @@
 #include "Receiver.h"
 
 #define COMPUTE_BUTTON 1
+#define CLICK_TEST_1 2
+#define CLICK_TEST_2 3
+#define CLICK_TEST_3 4
+#define CLICK_TEST_4 5
+#define CLICK_TEST_5 6
+#define CLICK_TEST_6 7
 
 using namespace std;
 
 LRESULT CALLBACK MyWindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp);
-bool isInteger(char*);
 void AddControls(HWND);
+void AddMenus(HWND);
 
 HWND input, console, button;
-int res = 0;
+HMENU hMenu;
+HMENU hTestMenu;
 
+/**
+ *
+ * @param hInst
+ * @param hPrevInst
+ * @param args
+ * @param ncmdshow
+ * @return
+ */
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR args, int ncmdshow) {
 
     WNDCLASSW wc = {0};
@@ -34,10 +49,15 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR args, int ncmdsho
     return createReceiver(hwnd);
 }
 
+/**
+ *  the Window Procedure
+ */
 LRESULT CALLBACK MyWindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp){
     switch(msg){
         case WM_CREATE:
             AddControls(hwnd);
+            AddMenus(hwnd);
+
             break;
 
         case WM_COMMAND:
@@ -47,14 +67,47 @@ LRESULT CALLBACK MyWindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp){
                     GetWindowText(input, X, 100);
 
                     if (isInteger(X)){
-                        SetFocus(hwnd);
                         EnableWindow(button, false);
                         EnableWindow(input, false);
+                        //EnableMenuItem(hMenu, (UINT_PTR)hTestMenu, MF_DISABLED);
+                        SetMenu(hwnd, NULL);
+                        //SendMessage(hwnd, BM_CLICK, CLICK_TEST_1, 0);
                         SetWindowText(console, "");
+                        SetFocus(hwnd);
 
                         createProcess(stoi(X));
                     } else
                         MessageBox(hwnd, "Enter valid integer value!", "Error", MB_OK);
+
+                    break;
+                case CLICK_TEST_1:
+                    SetWindowText(input, "100");
+                    SendMessage(button, BM_CLICK, 0, 0);
+
+                    break;
+                case CLICK_TEST_2:
+                    SetWindowText(input, "5");
+                    SendMessage(button, BM_CLICK, 0, 0);
+
+                    break;
+                case CLICK_TEST_3:
+                    SetWindowText(input, "-100");
+                    SendMessage(button, BM_CLICK, 0, 0);
+
+                    break;
+                case CLICK_TEST_4:
+                    SetWindowText(input, "-2000");
+                    SendMessage(button, BM_CLICK, 0, 0);
+
+                    break;
+                case CLICK_TEST_5:
+                    SetWindowText(input, "-10");
+                    SendMessage(button, BM_CLICK, 0, 0);
+
+                    break;
+                case CLICK_TEST_6:
+                    SetWindowText(input, "-1000");
+                    SendMessage(button, BM_CLICK, 0, 0);
 
                     break;
             }
@@ -62,17 +115,22 @@ LRESULT CALLBACK MyWindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp){
 
         case WM_DESTROY:
             PostQuitMessage(0);
+
             break;
         case WM_KEYDOWN:
             if(wp == VK_ESCAPE)
                 breakProcess(1, 1);
-                //PostQuitMessage(0);
+
             break;
         default:
             return DefWindowProcW(hwnd, msg, wp, lp);
     }
 }
 
+/**
+ *  function for creating button and text windows
+ * @param hWnd  handle to a main window
+ */
 void AddControls(HWND hWnd){
 
     CreateWindowW(L"static", L"Enter integer value X :", WS_VISIBLE | WS_CHILD | SS_CENTER, 175, 20, 150, 20, hWnd, nullptr, nullptr, nullptr);
@@ -84,38 +142,23 @@ void AddControls(HWND hWnd){
     console = CreateWindowW(L"static", L"", WS_VISIBLE | WS_CHILD, 75, 120, 350, 100, hWnd, nullptr, nullptr, nullptr);
 }
 
-//Convert from char[] to int
-bool isInteger(char *s){
-    string temp(s);
-    res = 0;
-    int length = temp.size(), i = 0;
+/**
+ *  function for creating menu with tests button
+ * @param hWnd  handle to a main window
+ */
+void AddMenus(HWND hWnd){
+    hMenu = CreateMenu();
 
-    if (length <= 0)
-        return false;
+    hTestMenu = CreateMenu();
 
-    //if number <0
-    if (length > 1 && temp[0] == '-'){
-        if (temp[1] >= '1' && temp[1] <= '9'){
-            res = (temp[1] - '0') * (-1);
+    AppendMenu(hTestMenu, MF_STRING, CLICK_TEST_1, "F(x) finishes before G(x) with non-zero value");
+    AppendMenu(hTestMenu, MF_STRING, CLICK_TEST_2, "G(x) finishes before F(x) with non-zero value");
+    AppendMenu(hTestMenu, MF_STRING, CLICK_TEST_3, "F(x) finishes with zero value, G(x) hangs");
+    AppendMenu(hTestMenu, MF_STRING, CLICK_TEST_4, "G(x) finishes with zero value, F(x) hangs");
+    AppendMenu(hTestMenu, MF_STRING, CLICK_TEST_5, "F(x) finishes with non-zero value, G(x) hangs");
+    AppendMenu(hTestMenu, MF_STRING, CLICK_TEST_6, "G(x) finishes with non-zero value, F(x) hangs");
 
-            for (i = 2; i<length; i++){
-                if (temp[i] >= '0' && temp[i] <= '9')
-                    res = res * 10 - (temp[i] - '0');
-                else
-                    return false;
-            }
-            return true;
-        } else
-            return false;
-    }
+    AppendMenu(hMenu, MF_POPUP, (UINT_PTR)hTestMenu, "Tests");
 
-    //if number >=0
-    for (i; i<length; i++){
-        if (temp[i] >= '0' && temp[i] <= '9')
-            res = res * 10 + (temp[i] - '0');
-        else
-            return false;
-    }
-
-    return true;
+    SetMenu(hWnd, hMenu);
 }
