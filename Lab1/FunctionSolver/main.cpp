@@ -3,8 +3,19 @@
 #include "Functions/functions.h"
 #define MYMESSAGE 1
 
+/**
+ * function for sending messages to receiver
+ * @param function contains function info
+ * @param result
+ * @return
+ */
 bool sendMessage(char function, int result);
 
+/**
+ * structure for receiving messages
+ * func store info about function
+ * res store result of the function
+ */
 typedef struct tagMyStruct{
     char func;
     int res;
@@ -45,6 +56,12 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
+/**
+ * function for sending messages to receiver
+ * @param function contains function info
+ * @param result
+ * @return
+ */
 bool sendMessage(char function, int result){
     MYSTRUCT MyStruct;
     MyStruct.func = function;
