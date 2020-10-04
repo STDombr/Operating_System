@@ -1,6 +1,6 @@
 # Tasks synchronization and parallelization
 C++
-Project 1_7
+Lab 1
 ІПС-31
 Stanislav Dombrovskyi 
 
