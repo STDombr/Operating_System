@@ -36,12 +36,26 @@ int main(int argc, char *argv[]) {
 
             sendMessage('f', result);
         }
-        else
+        else if (func == "g")
         {
             result = g_func(stoi(X));
 
             return sendMessage('g', result);
         }
+        else if (func == "demoF")
+        {
+            result = f_func_demo<spos::lab1::demo::INT>(stoi(X));
+
+            sendMessage('f', result);
+        }
+        else if (func == "demoG")
+        {
+            result = g_func_demo<spos::lab1::demo::INT>(stoi(X));
+
+            sendMessage('g', result);
+        }
+        else
+            return 0;
     }
     else if (argc == 3)
     {

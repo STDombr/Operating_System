@@ -10,6 +10,7 @@
  *  (-100; infinity) f return (x + 1) / 3
  * @return result
  */
+
 int f_func(int x){
     if (x <= -1000)
         while(1){}
@@ -48,6 +49,26 @@ int g_func(int x){
     Sleep(3000);
 
     return ((x - 1) * 4);
+}
+
+/**
+ * demofunc F(x)
+ * @param x
+ * @return result
+ */
+template<spos::lab1::demo::op_group O>
+int f_func_demo(int x){
+    return spos::lab1::demo::f_func<O>(x);
+}
+
+/**
+ * demofunc G(x)
+ * @param x
+ * @return result
+ */
+template<spos::lab1::demo::op_group O>
+int g_func_demo(int x){
+    return spos::lab1::demo::g_func<O>(x);
 }
 
 /**
