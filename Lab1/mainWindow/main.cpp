@@ -12,6 +12,13 @@
 #define CLICK_TEST_5 6
 #define CLICK_TEST_6 7
 
+#define CLICK_TEST_DEMO_1 8
+#define CLICK_TEST_DEMO_2 9
+#define CLICK_TEST_DEMO_3 10
+#define CLICK_TEST_DEMO_4 11
+#define CLICK_TEST_DEMO_5 12
+#define CLICK_TEST_DEMO_6 13
+
 using namespace std;
 
 LRESULT CALLBACK MyWindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp);
@@ -20,7 +27,6 @@ void AddMenus(HWND);
 
 HWND input, console, button;
 HMENU hMenu;
-HMENU hTestMenu;
 
 /**
  *
@@ -69,13 +75,11 @@ LRESULT CALLBACK MyWindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp){
                     if (isInteger(X)){
                         EnableWindow(button, false);
                         EnableWindow(input, false);
-                        //EnableMenuItem(hMenu, (UINT_PTR)hTestMenu, MF_DISABLED);
                         SetMenu(hwnd, NULL);
-                        //SendMessage(hwnd, BM_CLICK, CLICK_TEST_1, 0);
                         SetWindowText(console, "");
                         SetFocus(hwnd);
 
-                        createProcess(stoi(X));
+                        createProcess(false, stoi(X));
                     } else
                         MessageBox(hwnd, "Enter valid integer value!", "Error", MB_OK);
 
@@ -108,6 +112,36 @@ LRESULT CALLBACK MyWindowProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp){
                 case CLICK_TEST_6:
                     SetWindowText(input, "-1000");
                     SendMessage(button, BM_CLICK, 0, 0);
+
+                    break;
+                case CLICK_TEST_DEMO_1:
+                    SetWindowText(input, "0");
+                    runDemoFunc(hwnd, 0);
+
+                    break;
+                case CLICK_TEST_DEMO_2:
+                    SetWindowText(input, "1");
+                    runDemoFunc(hwnd, 1);
+
+                    break;
+                case CLICK_TEST_DEMO_3:
+                    SetWindowText(input, "2");
+                    runDemoFunc(hwnd, 2);
+
+                    break;
+                case CLICK_TEST_DEMO_4:
+                    SetWindowText(input, "3");
+                    runDemoFunc(hwnd, 3);
+
+                    break;
+                case CLICK_TEST_DEMO_5:
+                    SetWindowText(input, "4");
+                    runDemoFunc(hwnd, 4);
+
+                    break;
+                case CLICK_TEST_DEMO_6:
+                    SetWindowText(input, "5");
+                    runDemoFunc(hwnd, 5);
 
                     break;
             }
@@ -149,7 +183,7 @@ void AddControls(HWND hWnd){
 void AddMenus(HWND hWnd){
     hMenu = CreateMenu();
 
-    hTestMenu = CreateMenu();
+    HMENU hTestMenu = CreateMenu();
 
     AppendMenu(hTestMenu, MF_STRING, CLICK_TEST_1, "F(x) finishes before G(x) with non-zero value");
     AppendMenu(hTestMenu, MF_STRING, CLICK_TEST_2, "G(x) finishes before F(x) with non-zero value");
@@ -158,7 +192,17 @@ void AddMenus(HWND hWnd){
     AppendMenu(hTestMenu, MF_STRING, CLICK_TEST_5, "F(x) finishes with non-zero value, G(x) hangs");
     AppendMenu(hTestMenu, MF_STRING, CLICK_TEST_6, "G(x) finishes with non-zero value, F(x) hangs");
 
+    HMENU hTestDemoMenu = CreateMenu();
+
+    AppendMenu(hTestDemoMenu, MF_STRING, CLICK_TEST_DEMO_1, "F(x) finishes before G(x) with non-zero value");
+    AppendMenu(hTestDemoMenu, MF_STRING, CLICK_TEST_DEMO_2, "G(x) finishes before F(x) with non-zero value");
+    AppendMenu(hTestDemoMenu, MF_STRING, CLICK_TEST_DEMO_3, "F(x) finishes with zero value, G(x) hangs");
+    AppendMenu(hTestDemoMenu, MF_STRING, CLICK_TEST_DEMO_4, "G(x) finishes with zero value, F(x) hangs");
+    AppendMenu(hTestDemoMenu, MF_STRING, CLICK_TEST_DEMO_5, "F(x) finishes with non-zero value, G(x) hangs");
+    AppendMenu(hTestDemoMenu, MF_STRING, CLICK_TEST_DEMO_6, "G(x) finishes with non-zero value, F(x) hangs");
+
     AppendMenu(hMenu, MF_POPUP, (UINT_PTR)hTestMenu, "Tests");
+    AppendMenu(hMenu, MF_POPUP, (UINT_PTR)hTestDemoMenu, "Tests(demofuncs)");
 
     SetMenu(hWnd, hMenu);
 }

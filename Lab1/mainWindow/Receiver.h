@@ -27,8 +27,9 @@ std::string consoleMessages;
 
 /**
  * function for creating process to solv F(X) anf G(X)
+ * if demofunc = true, start demofuncs
  */
-void createProcess(int);
+void createProcess(bool demofunc, int X);
 
 /**
  * function for creating process to solv binary operation
@@ -64,6 +65,13 @@ void breakProcess(bool f, bool g);
  *  the Window Procedure
  */
 LRESULT CALLBACK receiverProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp);
+
+/**
+ * function for run demofuncs
+ * @param hwnd  handle to a main window
+ * @param X
+ */
+void runDemoFunc(HWND hwnd, int X);
 
 /**
  * function for creating a child hide window to receive a messages
@@ -162,13 +170,23 @@ LRESULT CALLBACK receiverProcedure(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp){
 /**
  * function for creating process to solv F(X) anf G(X)
  */
-void createProcess(int X){
+void createProcess(bool demofunc, int X){
     consoleMessages = "";
 
     f.func = 0;
-    std::string stringF = "f ";
+    std::string stringF;
     g.func = 0;
-    std::string stringG = "g ";
+    std::string stringG;
+
+    if (demofunc)
+    {
+        stringF = "demoF ";
+        stringG = "demoG ";
+    } else
+    {
+        stringF = "f ";
+        stringG = "g ";
+    }
 
     STARTUPINFO si = {0};
 
@@ -286,6 +304,21 @@ bool isInteger(char *s){
     }
 
     return true;
+}
+
+/**
+ * function for run demofuncs
+ * @param hwnd  handle to a main window
+ * @param X
+ */
+void runDemoFunc(HWND hwnd, int X){
+    EnableWindow(button, false);
+    EnableWindow(input, false);
+    SetMenu(hwnd, NULL);
+    SetWindowText(console, "");
+    SetFocus(hwnd);
+
+    createProcess(true, X);
 }
 
 #endif //LAB_1_RECEIVER_H
