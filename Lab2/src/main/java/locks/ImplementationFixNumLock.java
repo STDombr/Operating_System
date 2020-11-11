@@ -1,6 +1,7 @@
 package locks;
 
-import java.util.*;
+import java.util.List;
+import java.util.ArrayList;
 
 public abstract class ImplementationFixNumLock implements FixNumLock {
 
