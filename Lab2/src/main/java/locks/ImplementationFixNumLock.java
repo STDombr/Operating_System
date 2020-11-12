@@ -63,7 +63,11 @@ public abstract class ImplementationFixNumLock implements FixNumLock {
         return threads.size();
     }
 
-    public synchronized void reset(){
+    public Integer getIndex(){
+        return threads.indexOf(getId());
+    }
+
+    public synchronized void reset() {
         threads.clear();
     }
 }
