@@ -6,52 +6,46 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Condition;
 
 public class DekkerLock extends ImplementationFixNumLock {
 
-    private int turn;
-    private List<Boolean> wantsToEnter;
+    private AtomicLong turn;
+    private AtomicInteger countOfWantsToEnterThreads;
 
     public DekkerLock() {
         super(2);
-        wantsToEnter = new ArrayList<Boolean>(Collections.nCopies(2, false));
+
+        turn = new AtomicLong();
+        countOfWantsToEnterThreads = new AtomicInteger(0);
     }
 
     @Override
     public void lock() {
-        int otherId = turn;
+        long thisId = getId();
 
-        if (!wantsToEnter.get(turn)){
-            if (!wantsToEnter.get(1 - turn)){
-                otherId = 1 - turn;
-                turn = otherId;
-            } else{
-                otherId = 1 - turn;
-            }
-        }
+        if (countOfWantsToEnterThreads.get() == 0)
+            turn.set(thisId);
 
-        int thisId = 1 - otherId;
+        countOfWantsToEnterThreads.addAndGet(1);
 
-        wantsToEnter.set(thisId, true);
+        while (countOfWantsToEnterThreads.get() > 1) {
+            if (turn.get() != thisId) {
+                countOfWantsToEnterThreads.addAndGet(-1);
 
-        while (wantsToEnter.get(otherId)) {
-            if (turn == otherId) {
-                wantsToEnter.set(thisId, false);
-
-                while (turn == otherId) {
-                    System.out.println("B" + Thread.currentThread().getId());
+                while (countOfWantsToEnterThreads.get() > 0) {
+                    //wait
                 }
 
-                wantsToEnter.set(thisId, true);
+                countOfWantsToEnterThreads.addAndGet(1);
             }
         }
     }
 
     @Override
     public void unlock() {
-        wantsToEnter.set(turn, false);
-        turn = 1 - turn;
+        countOfWantsToEnterThreads.addAndGet(-1);
     }
 
     @Override
